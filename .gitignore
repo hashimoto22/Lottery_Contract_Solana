@@ -1,0 +1,17 @@
+# Ignore the target directory where Rust builds the project
+/target/
+
+# Ignore the Anchor build artifacts
+/anchor-build/
+
+# Ignore the IDL file (if you regenerate it frequently)
+/target/idl/
+
+# Ignore the wallet keypair files (if any)
+*.json
+
+# Ignore node modules if you have frontend code
+node_modules/
+
+# Ignore environment variable files
+.env
