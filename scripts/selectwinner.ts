@@ -1,8 +1,8 @@
 // scripts/select_winner_with_switchboard_randomness_service.ts
 // Updated to use the Switchboard Randomness Service for real randomness
 
-import * as anchor from "@project-serum/anchor";
-import { Connection, PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import * as anchor from "@coral-xyz/anchor";
+const { Connection, PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL } = anchor.web3;
 import { RandomnessService } from "@switchboard-xyz/solana-randomness-service";
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddress, NATIVE_MINT } from "@solana/spl-token";
 import fs from "fs";
@@ -26,8 +26,8 @@ async function main() {
   // Load program
   const idlPath = path.resolve(__dirname, "../target/idl/lottery.json");
   const idl = JSON.parse(fs.readFileSync(idlPath, "utf8"));
-  const PROGRAM_ID = new PublicKey("HCdwGMTkU4K6krKbHNTZhmZb2Dx8TjwdV7GWrmApxeoV");
-  const program = new anchor.Program(idl, PROGRAM_ID, provider);
+  const PROGRAM_ID = new PublicKey("CaxFs3DnbanSUhQRZawAQfWiH1HG8t5yuPCTrboc86mY");
+  const program = new anchor.Program(idl, provider);
 
   const lotteryId = "lottery1234";
   const LOTTERY_PREFIX = "lottery";
@@ -41,7 +41,8 @@ async function main() {
   // Check lottery status
   let lotteryAccount: any;
   try {
-    lotteryAccount = await program.account.lotteryState.fetch(lotteryPda);
+    // @ts-ignore
+    lotteryAccount = await program.account.lotteryState.fetch(lotteryPda) as any;
     console.log("📊 Pre-selection lottery status:");
     console.log("   - Total Tickets:", lotteryAccount.totalTickets);
     console.log("   - End Time:", new Date(lotteryAccount.endTime.toNumber() * 1000).toISOString());
@@ -58,7 +59,7 @@ async function main() {
     }
 
     console.log("🎭 Current participants:");
-    lotteryAccount.participants.forEach((participant: PublicKey, index: number) => {
+    lotteryAccount.participants.forEach((participant: anchor.web3.PublicKey, index: number) => {
       console.log(`   ${index + 1}. ${participant.toBase58()}`);
     });
 
@@ -216,6 +217,7 @@ pub fn consume_randomness(
       
       await new Promise(resolve => setTimeout(resolve, 3000)); // Wait a bit for state updates
       
+      // @ts-ignore
       const updatedLotteryAccount = await program.account.lotteryState.fetch(lotteryPda) as any;
       console.log("🎊 Final lottery results:");
       console.log("   - Winner:", updatedLotteryAccount.winner ? updatedLotteryAccount.winner.toBase58() : "None");
@@ -224,7 +226,7 @@ pub fn consume_randomness(
 
       if (updatedLotteryAccount.winner && !updatedLotteryAccount.winner.equals(PublicKey.default)) {
         const winnerIndex = lotteryAccount.participants.findIndex(
-          (p: PublicKey) => p.equals(updatedLotteryAccount.winner)
+          (p: anchor.web3.PublicKey) => p.equals(updatedLotteryAccount.winner)
         );
         console.log(`🎉 Congratulations to participant #${winnerIndex + 1}!`);
       } else {

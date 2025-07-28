@@ -1,8 +1,8 @@
 // scripts/simple_setup.ts
 // Simplified Switchboard setup that avoids version conflicts
 
-import * as anchor from "@project-serum/anchor";
-import { Connection, PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import * as anchor from "@coral-xyz/anchor";
+const { Connection, PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL } = anchor.web3;
 import fs from "fs";
 import path from "path";
 
@@ -60,8 +60,8 @@ async function main() {
 
   const idlPath = path.resolve(__dirname, "../target/idl/lottery.json");
   const idl = JSON.parse(fs.readFileSync(idlPath, "utf8"));
-  const PROGRAM_ID = new PublicKey("HCdwGMTkU4K6krKbHNTZhmZb2Dx8TjwdV7GWrmApxeoV");
-  const program = new anchor.Program(idl, PROGRAM_ID, provider);
+  const PROGRAM_ID = new PublicKey("CaxFs3DnbanSUhQRZawAQfWiH1HG8t5yuPCTrboc86mY");
+  const program = new anchor.Program(idl, provider);
 
   const lotteryId = "lottery1234";
   const LOTTERY_PREFIX = "lottery";
@@ -74,6 +74,7 @@ async function main() {
   console.log("Lottery PDA:", lotteryPda.toBase58());
 
   try {
+    // @ts-ignore
     const lotteryAccount = await program.account.lotteryState.fetch(lotteryPda) as any;
     console.log("📊 Lottery Status:");
     console.log("   - Total Tickets:", lotteryAccount.totalTickets);

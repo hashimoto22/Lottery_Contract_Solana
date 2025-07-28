@@ -1,7 +1,7 @@
 // scripts/initialize.ts
 
-import * as anchor from "@project-serum/anchor";
-import { Connection, PublicKey, SystemProgram, Keypair } from "@solana/web3.js";
+import * as anchor from "@coral-xyz/anchor";
+const { Connection, PublicKey, SystemProgram, Keypair } = anchor.web3;
 import fs from "fs";
 import path from "path";
 
@@ -15,6 +15,7 @@ async function main() {
   // 2️⃣ Load your local wallet keypair from ~/.config/solana/id.json
   // ───────────────────────────────────────────────────────
   const homeDir = process.env.HOME || process.env.USERPROFILE || "~";
+  console.log("---------------------- this is the home Dir", homeDir);
   const keypairPath = path.resolve(homeDir, ".config/solana/id.json");
   const secret = JSON.parse(fs.readFileSync(keypairPath, "utf8")) as number[];
   const walletKeypair = Keypair.fromSecretKey(Uint8Array.from(secret));
@@ -37,10 +38,8 @@ async function main() {
   // ───────────────────────────────────────────────────────
   // 5️⃣ Use your deployed Program ID (must match on‐chain exactly)
   // ───────────────────────────────────────────────────────
-  const PROGRAM_ID = new PublicKey(
-    "HCdwGMTkU4K6krKbHNTZhmZb2Dx8TjwdV7GWrmApxeoV"
-  );
-  const program = new anchor.Program(idl, PROGRAM_ID, provider);
+  const PROGRAM_ID = new PublicKey("CaxFs3DnbanSUhQRZawAQfWiH1HG8t5yuPCTrboc86mY");
+  const program = new anchor.Program(idl, provider);
 
   // ───────────────────────────────────────────────────────
   // 6️⃣ Prepare the five arguments your Rust `initialize` expects
@@ -91,6 +90,7 @@ async function main() {
   );
 
   try {
+    // @ts-ignore
     const adminAccount = await program.account.adminState.fetch(adminPda);
     console.log("✅ Admin account already exists:", adminPda.toBase58());
   } catch (err) {

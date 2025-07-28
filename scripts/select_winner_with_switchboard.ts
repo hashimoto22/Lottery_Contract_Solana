@@ -1,8 +1,8 @@
 // scripts/select_winner_with_switchboard.ts
 // This uses the Switchboard Randomness Service for real randomness
 
-import * as anchor from "@project-serum/anchor";
-import { Connection, PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import * as anchor from "@coral-xyz/anchor";
+const { Connection, PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL } = anchor.web3;
 import fs from "fs";
 import path from "path";
 
@@ -24,8 +24,8 @@ async function main() {
   // Load program
   const idlPath = path.resolve(__dirname, "../target/idl/lottery.json");
   const idl = JSON.parse(fs.readFileSync(idlPath, "utf8"));
-  const PROGRAM_ID = new PublicKey("HCdwGMTkU4K6krKbHNTZhmZb2Dx8TjwdV7GWrmApxeoV");
-  const program = new anchor.Program(idl, PROGRAM_ID, provider);
+  const PROGRAM_ID = new PublicKey("CaxFs3DnbanSUhQRZawAQfWiH1HG8t5yuPCTrboc86mY");
+  const program = new anchor.Program(idl, provider);
 
   const lotteryId = "lottery1234";
   const LOTTERY_PREFIX = "lottery";
@@ -38,6 +38,7 @@ async function main() {
 
   // Check lottery status
   try {
+    // @ts-ignore
     const lotteryAccount = await program.account.lotteryState.fetch(lotteryPda) as any;
     console.log("📊 Pre-selection lottery status:");
     console.log("   - Total Tickets:", lotteryAccount.totalTickets);
@@ -55,7 +56,7 @@ async function main() {
     }
 
     console.log("🎭 Current participants:");
-    lotteryAccount.participants.forEach((participant: PublicKey, index: number) => {
+    lotteryAccount.participants.forEach((participant: anchor.web3.PublicKey, index: number) => {
       console.log(`   ${index + 1}. ${participant.toBase58()}`);
     });
 
@@ -131,6 +132,7 @@ async function main() {
       // Check the result
       await new Promise(resolve => setTimeout(resolve, 3000));
       
+      // @ts-ignore
       const updatedLotteryAccount = await program.account.lotteryState.fetch(lotteryPda) as any;
       console.log("🎊 Winner selection results:");
       console.log("   - Winner:", updatedLotteryAccount.winner ? updatedLotteryAccount.winner.toBase58() : "None");

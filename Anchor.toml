@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-lottery = "DbqEyYdt1aX9oCTxXvmMgcEUYyCb15V6bVenUXg4uvri"
+lottery = "CaxFs3DnbanSUhQRZawAQfWiH1HG8t5yuPCTrboc86mY"
 
 [registry]
 url = "https://api.apr.dev"

@@ -1,10 +1,11 @@
 // scripts/easy_select_winner.ts
 // Uses an existing Switchboard randomness account on devnet
 
-import * as anchor from "@project-serum/anchor";
-import { Connection, PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import * as anchor from "@coral-xyz/anchor";
+const { Connection, PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL } = anchor.web3;
 import fs from "fs";
 import path from "path";
+
 
 async function main() {
   const connection = new Connection("https://api.devnet.solana.com", "confirmed");
@@ -24,10 +25,10 @@ async function main() {
   // Load program
   const idlPath = path.resolve(__dirname, "../target/idl/lottery.json");
   const idl = JSON.parse(fs.readFileSync(idlPath, "utf8"));
-  const PROGRAM_ID = new PublicKey("HCdwGMTkU4K6krKbHNTZhmZb2Dx8TjwdV7GWrmApxeoV");
-  const program = new anchor.Program(idl, PROGRAM_ID, provider);
+  const PROGRAM_ID = new PublicKey("CaxFs3DnbanSUhQRZawAQfWiH1HG8t5yuPCTrboc86mY");
+  const program = new anchor.Program(idl, provider);
 
-  const lotteryId = "lottery1234";
+  const lotteryId = "lottery551234";
   const LOTTERY_PREFIX = "lottery";
   const [lotteryPda] = PublicKey.findProgramAddressSync(
     [Buffer.from(LOTTERY_PREFIX), Buffer.from(lotteryId)],
@@ -38,6 +39,7 @@ async function main() {
 
   // Check lottery status
   try {
+    // @ts-ignore
     const lotteryAccount = await program.account.lotteryState.fetch(lotteryPda) as any;
     console.log("📊 Pre-selection lottery status:");
     console.log("   - Total Tickets:", lotteryAccount.totalTickets);
@@ -55,7 +57,7 @@ async function main() {
     }
 
     console.log("🎭 Current participants:");
-    lotteryAccount.participants.forEach((participant: PublicKey, index: number) => {
+    lotteryAccount.participants.forEach((participant: anchor.web3.PublicKey, index: number) => {
       console.log(`   ${index + 1}. ${participant.toBase58()}`);
     });
 
@@ -72,8 +74,9 @@ async function main() {
   const possibleRandomnessAccounts = [
     // You can find these on https://ondemand.switchboard.xyz/solana/devnet
     // or create your own using the web interface
-    "2KgowxogBrV2LeFT7brBbzunj1Nq9Mry1f4AXpCYsJF3", // Example - may not work
-    "7hVBPXS8VdQJvBsSTqJGxixmCfsYF4PnCqNz5NtKbmMc", // Example - may not work
+    "RANDMo5gFnqnXJW5Z52KNmd24sAo95KAd5VbiCtq5Rh", // Example - may not work
+    "Aio4gaXjXzJNVLtzwtNVmSqGKpANtXhybbkhtAC94ji2", // Example - may not work
+    "UTVH4VoHm5Rz6yj5HzEC27JLD4jknKC22pvqwk2ceWz"
   ];
 
   console.log("🧪 Trying with known randomness accounts...");
@@ -153,6 +156,7 @@ async function main() {
     await new Promise(resolve => setTimeout(resolve, 3000));
     
     try {
+      // @ts-ignore
       const updatedLotteryAccount = await program.account.lotteryState.fetch(lotteryPda) as any;
       console.log("\n🎊 Final Results:");
       console.log("   - Winner:", updatedLotteryAccount.winner ? updatedLotteryAccount.winner.toBase58() : "None");
@@ -181,19 +185,28 @@ async function checkSwitchboardPackage(): Promise<boolean> {
 
 async function createRandomnessAccount(
   provider: anchor.AnchorProvider, 
-  lotteryPda: PublicKey, 
+  lotteryPda: anchor.web3.PublicKey, 
   lotteryId: string, 
   program: anchor.Program
 ) {
   try {
     // Dynamic import to avoid errors if package isn't installed
     const { Randomness, Queue } = await import("@switchboard-xyz/on-demand");
+    // Use Randomness or Queue as per the Switchboard docs
     
-    console.log("🔧 Creating new randomness account...");
-    
-    // Generate a new randomness account
-    const randomnessKeypair = Keypair.generate();
-    console.log("📝 Generated randomness account:", randomnessKeypair.publicKey.toBase58());
+    import { Program, AnchorProvider, Idl } from "@coral-xyz/anchor";
+    import switchboardIdl from "@switchboard-xyz/on-demand/idl.json"; // or the correct path to the IDL
+    const SWITCHBOARD_PROGRAM_ID = new PublicKey("SWITCHBOARD_PROGRAM_ID_HERE");
+    const switchboardProgram = new Program(switchboardIdl as Idl, SWITCHBOARD_PROGRAM_ID, provider);
+
+    const homeDir = process.env.HOME || process.env.USERPROFILE || "~";
+    const keypairPath = path.resolve(homeDir, ".config/solana/id.json");
+    const secret = JSON.parse(fs.readFileSync(keypairPath, "utf8")) as number[];
+    const walletKeypair = Keypair.fromSecretKey(Uint8Array.from(secret));
+    // const keyPair = Keypair.generate();
+    const queuePubkey = new PublicKey("EYiAmGSdsQTuCw413V5BzaruWuCCSDgTPtBGvLkXHbe7"); 
+    const randomness = await Randomness.create(program, walletKeypair, queuePubkey);
+    console.log("📝 Generated randomness account:", randomness);
     
     // Note: In a real implementation, you'd need to properly initialize this
     // For now, let's just try using it directly
@@ -203,7 +216,7 @@ async function createRandomnessAccount(
       .selectWinner(lotteryId)
       .accounts({
         lottery: lotteryPda,
-        randomnessAccountData: randomnessKeypair.publicKey,
+        randomnessAccountData: randomness,
       })
       .rpc();
 

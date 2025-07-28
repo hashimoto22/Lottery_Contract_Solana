@@ -1,7 +1,7 @@
 // scripts/select_winner.ts
 
-import * as anchor from "@project-serum/anchor";
-import { Connection, PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import * as anchor from "@coral-xyz/anchor";
+const { Connection, PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL } = anchor.web3;
 import fs from "fs";
 import path from "path";
 
@@ -23,10 +23,11 @@ async function main() {
   // Load program
   const idlPath = path.resolve(__dirname, "../target/idl/lottery.json");
   const idl = JSON.parse(fs.readFileSync(idlPath, "utf8"));
-  const PROGRAM_ID = new PublicKey("HCdwGMTkU4K6krKbHNTZhmZb2Dx8TjwdV7GWrmApxeoV");
-  const program = new anchor.Program(idl, PROGRAM_ID, provider);
+  const PROGRAM_ID = new PublicKey("CaxFs3DnbanSUhQRZawAQfWiH1HG8t5yuPCTrboc86mY");
+  // const coder = new anchor.BorshCoder(idl);
+  const program = new anchor.Program(idl, provider);
 
-  const lotteryId = "lottery1234";
+  const lotteryId = "lottery551234";
   const LOTTERY_PREFIX = "lottery";
   const [lotteryPda] = PublicKey.findProgramAddressSync(
     [Buffer.from(LOTTERY_PREFIX), Buffer.from(lotteryId)],
@@ -37,7 +38,8 @@ async function main() {
 
   // Check lottery status before selecting winner
   try {
-    const lotteryAccount = await program.account.lotteryState.fetch(lotteryPda) as any;
+    // @ts-ignore
+    const lotteryAccount = await program.account.lotteryState.fetch(lotteryPda);
     console.log("📊 Pre-selection lottery status:");
     console.log("   - Total Tickets:", lotteryAccount.totalTickets);
     console.log("   - End Time:", new Date(lotteryAccount.endTime.toNumber() * 1000).toISOString());
@@ -64,7 +66,7 @@ async function main() {
     }
 
     console.log("🎭 Current participants:");
-    lotteryAccount.participants.forEach((participant: PublicKey, index: number) => {
+    lotteryAccount.participants.forEach((participant: anchor.web3.PublicKey, index: number) => {
       console.log(`   ${index + 1}. ${participant.toBase58()}`);
     });
 
@@ -82,7 +84,7 @@ async function main() {
   console.log("\nFor now, this is a placeholder that will likely fail.\n");
 
   // Placeholder randomness account - replace with actual Switchboard account
-  const randomnessAccount = new PublicKey("11111111111111111111111111111111");
+  const randomnessAccount = new PublicKey("Aio4gaXjXzJNVLtzwtNVmSqGKpANtXhybbkhtAC94ji2");
 
   try {
     console.log("🎯 Selecting winner...");
@@ -99,8 +101,8 @@ async function main() {
 
     // Check the result
     await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for confirmation
-    
-    const updatedLotteryAccount = await program.account.lotteryState.fetch(lotteryPda) as any;
+    // @ts-ignore
+    const updatedLotteryAccount = await program.account.lotteryState.fetch(lotteryPda);
     console.log("🎊 Winner selection results:");
     console.log("   - Winner:", updatedLotteryAccount.winner ? updatedLotteryAccount.winner.toBase58() : "None");
     console.log("   - Status:", updatedLotteryAccount.status);

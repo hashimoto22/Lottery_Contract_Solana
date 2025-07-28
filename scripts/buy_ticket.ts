@@ -1,7 +1,7 @@
 // scripts/buy_ticket.ts
 
-import * as anchor from "@project-serum/anchor";
-import { Connection, PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import * as anchor from "@coral-xyz/anchor";
+const { Connection, PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL } = anchor.web3;
 import fs from "fs";
 import path from "path";
 
@@ -15,6 +15,7 @@ async function main() {
   // 2️⃣ Load your local wallet keypair
   // ───────────────────────────────────────────────────────
   const homeDir = process.env.HOME || process.env.USERPROFILE || "~";
+  console.log("---------------------- this is the home Dir", homeDir);
   const keypairPath = path.resolve(homeDir, ".config/solana/id.json");
   const secret = JSON.parse(fs.readFileSync(keypairPath, "utf8")) as number[];
   const walletKeypair = Keypair.fromSecretKey(Uint8Array.from(secret));
@@ -33,13 +34,13 @@ async function main() {
   // ───────────────────────────────────────────────────────
   const idlPath = path.resolve(__dirname, "../target/idl/lottery.json");
   const idl = JSON.parse(fs.readFileSync(idlPath, "utf8"));
-  const PROGRAM_ID = new PublicKey("HCdwGMTkU4K6krKbHNTZhmZb2Dx8TjwdV7GWrmApxeoV");
-  const program = new anchor.Program(idl, PROGRAM_ID, provider);
+  const PROGRAM_ID = new PublicKey("CaxFs3DnbanSUhQRZawAQfWiH1HG8t5yuPCTrboc86mY");
+  const program = new anchor.Program(idl, provider);
 
   // ───────────────────────────────────────────────────────
   // 5️⃣ Set lottery parameters (must match your initialize script)
   // ───────────────────────────────────────────────────────
-  const lotteryId = "lottery1234"; // Same as in initialize.ts
+  const lotteryId = "lottery551234"; // Same as in initialize.ts
 
   // ───────────────────────────────────────────────────────
   // 6️⃣ Derive the lottery PDA (same logic as initialize)
@@ -65,7 +66,8 @@ async function main() {
   // 8️⃣ Check lottery status and details
   // ───────────────────────────────────────────────────────
   try {
-    const lotteryAccount = await program.account.lotteryState.fetch(lotteryPda) as any;
+    // @ts-ignore
+    const lotteryAccount = await program.account.lotteryState.fetch(lotteryPda);
     console.log("📊 Lottery Status:");
     console.log("   - ID:", lotteryAccount.lotteryId);
     console.log("   - Entry Fee:", lotteryAccount.entryFee.toNumber() / LAMPORTS_PER_SOL, "SOL");
@@ -120,7 +122,8 @@ async function main() {
     // ───────────────────────────────────────────────────────
     await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for confirmation
     
-    const updatedLotteryAccount = await program.account.lotteryState.fetch(lotteryPda) as any;
+    // @ts-ignore
+    const updatedLotteryAccount = await program.account.lotteryState.fetch(lotteryPda);
     console.log("📈 Updated lottery stats:");
     console.log("   - Total Tickets:", updatedLotteryAccount.totalTickets);
     console.log("   - Total Prize Pool:", 
